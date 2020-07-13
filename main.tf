@@ -18,6 +18,8 @@ data "aws_ami" "oracle" {
   owners = ["131827586825"] # Canonical
 }
 
+
+
 resource "aws_instance" "pritunl" {
   ami           = data.aws_ami.oracle.id
   instance_type = var.instance_type
@@ -30,7 +32,7 @@ resource "aws_instance" "pritunl" {
   ]
 
   subnet_id                   = var.public_subnet_id
-  associate_public_ip_address = false
+  associate_public_ip_address = true
 
   tags = "${
     merge(
@@ -40,6 +42,9 @@ resource "aws_instance" "pritunl" {
   }"
 
   provisioner "remote-exec" {
+    connection {
+      host = aws_instance.pritunl.public_ip
+    }
     inline = [
       "sleep 60",
       "sudo pritunl setup-key",
