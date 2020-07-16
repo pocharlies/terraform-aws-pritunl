@@ -2,12 +2,12 @@ data "aws_region" "current" {}
 
 data "aws_caller_identity" "current" {}
 
-data "aws_ami" "oracle" {
+data "aws_ami" "centos" {
   most_recent = true
 
   filter {
     name   = "name"
-    values = ["OL7.6-x86_64-HVM-2019-01-29"]
+    values = ["CentOS 8.2.2004 x86_64"]
   }
 
   filter {
@@ -15,13 +15,11 @@ data "aws_ami" "oracle" {
     values = ["hvm"]
   }
 
-  owners = ["131827586825"] # Canonical
+  owners = ["125523088429"] # Canonical
 }
 
-
-
 resource "aws_instance" "pritunl" {
-  ami           = data.aws_ami.oracle.id
+  ami           = data.aws_ami.centos.id
   instance_type = var.instance_type
   key_name      = var.aws_key_name
   user_data     = file("${path.module}/provision.sh")
@@ -40,19 +38,8 @@ resource "aws_instance" "pritunl" {
       var.tags,
     )
   }"
-
-  provisioner "remote-exec" {
-    connection {
-      host = aws_instance.pritunl.public_ip
-    }
-    inline = [
-      "sleep 60",
-      "sudo pritunl setup-key",
-    ]
-  }
-
 }
-
+q
 data "aws_instance" "pritunl_loaded" {
   depends_on = [
     aws_instance.pritunl
@@ -60,7 +47,7 @@ data "aws_instance" "pritunl_loaded" {
 
   filter {
     name   = "image-id"
-    values = [data.aws_ami.oracle.id]
+    values = [data.aws_ami.centos.id]
   }
 
   filter {
@@ -71,6 +58,7 @@ data "aws_instance" "pritunl_loaded" {
 }
 
 resource "aws_eip" "pritunl" {
-  instance = "${aws_instance.pritunl.id}"
+  instance = aws_instance.pritunl.id
   vpc      = true
 }
+q
