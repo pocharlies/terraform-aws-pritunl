@@ -2,12 +2,12 @@ data "aws_region" "current" {}
 
 data "aws_caller_identity" "current" {}
 
-data "aws_ami" "centos" {
+data "aws_ami" "aws" {
   most_recent = true
 
   filter {
     name   = "name"
-    values = ["CentOS 8.2.2004 x86_64"]
+    values = ["amzn2-ami-hvm-2.0.*-x86_64-gp2"]
   }
 
   filter {
@@ -15,11 +15,11 @@ data "aws_ami" "centos" {
     values = ["hvm"]
   }
 
-  owners = ["125523088429"] # Canonical
+  owners = ["amazon"]
 }
 
 resource "aws_instance" "pritunl" {
-  ami           = data.aws_ami.centos.id
+  ami           = data.aws_ami.aws.id
   instance_type = var.instance_type
   key_name      = var.aws_key_name
   user_data     = file("${path.module}/provision.sh")
@@ -38,8 +38,20 @@ resource "aws_instance" "pritunl" {
       var.tags,
     )
   }"
+
+  //  provisioner "remote-exec" {
+  //    connection {
+  //      host = aws_instance.pritunl.public_ip
+  //      user = "ec2-user"
+  //    }
+  //    inline = [
+  //      "sleep 300",
+  //      "sudo pritunl setup-key",
+  //    ]
+  //  }
+
 }
-q
+
 data "aws_instance" "pritunl_loaded" {
   depends_on = [
     aws_instance.pritunl
@@ -54,11 +66,9 @@ data "aws_instance" "pritunl_loaded" {
     name   = "tag:Name"
     values = [format("%s-%s", var.resource_name_prefix, "vpn")]
   }
-
 }
 
 resource "aws_eip" "pritunl" {
   instance = aws_instance.pritunl.id
   vpc      = true
 }
-q
