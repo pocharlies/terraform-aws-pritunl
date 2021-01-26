@@ -42,9 +42,3 @@ variable "internal_cidrs" {
   type        = list(string)
   default     = ["10.0.0.0/16"]
 }
-
-variable "host_user" {
-  description = "Username to connect to remote host"
-  type        = string
-  default     = "ec2-user"
-}

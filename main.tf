@@ -59,7 +59,7 @@ data "aws_instance" "pritunl_loaded" {
 
   filter {
     name   = "image-id"
-    values = [data.aws_ami.centos.id]
+    values = [data.aws_ami.aws.id]
   }
 
   filter {
@@ -69,6 +69,6 @@ data "aws_instance" "pritunl_loaded" {
 }
 
 resource "aws_eip" "pritunl" {
-  instance = aws_instance.pritunl.id
+  instance = "${aws_instance.pritunl.id}"
   vpc      = true
 }
